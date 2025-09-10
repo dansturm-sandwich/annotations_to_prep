@@ -9,7 +9,8 @@ def copyPlates(annoPath, outboxPath):
 	# Check if the folder exists
 	if os.path.isdir(annoPath):
 		# Loop through each file in the folder
-		for anno_name in os.listdir(annoPath):
+		for anno_name in [f for f in os.listdir(annoPath) if not f.startswith(".")]:
+    # your code here
 			file_path = os.path.join(annoPath, anno_name)
 			# Check if it's a file (not a folder)
 			if os.path.isfile(file_path):
