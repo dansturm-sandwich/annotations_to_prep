@@ -10,7 +10,6 @@ def copyPlates(annoPath, outboxPath):
 	if os.path.isdir(annoPath):
 		# Loop through each file in the folder
 		for anno_name in [f for f in os.listdir(annoPath) if not f.startswith(".")]:
-    # your code here
 			file_path = os.path.join(annoPath, anno_name)
 			# Check if it's a file (not a folder)
 			if os.path.isfile(file_path):
@@ -22,8 +21,13 @@ def copyPlates(annoPath, outboxPath):
 				shotFolder = f'{file_path.split("online/", 1)[0]}online/{shotSeries}/{shotName}/plates'
 				if "log" in plateName:
 					platePath = f'{shotFolder}/log/{plateName}.mov'
+					isSeq = False
 				elif "cc" in plateName:
 					platePath = f'{shotFolder}/cc/{plateName}.mov'
+					isSeq = False
+				elif "lin" in plateName:
+					platePath = f'{shotFolder}/lin/{plateName}'
+					isSeq = True
 				else:
 					print('Error')
 				outboxAnno = f'{outboxPath}/annotations'
@@ -31,7 +35,11 @@ def copyPlates(annoPath, outboxPath):
 				os.makedirs(outboxAnno, exist_ok=True)
 				os.makedirs(outboxPlate, exist_ok=True)
 				shutil.copy2(file_path, os.path.join(outboxAnno, os.path.basename(file_path)))
-				shutil.copy2(platePath, os.path.join(outboxPlate, os.path.basename(platePath)))
+				if not isSeq:
+					shutil.copy2(platePath, os.path.join(outboxPlate, os.path.basename(platePath)))
+				else:
+					shutil.copytree(platePath, os.path.join(outboxPlate, os.path.basename(platePath)), dirs_exist_ok=True)
+
 
 	else:
 		print("Error. Not a folder.")
