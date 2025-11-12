@@ -13,7 +13,7 @@ def copyPlates(annoPath, outboxPath):
 			file_path = os.path.join(annoPath, anno_name)
 			# Check if it's a file (not a folder)
 			if os.path.isfile(file_path):
-				plateName = os.path.basename(file_path[:-20])
+				plateName = os.path.basename(file_path[:-11])
 				print(f"Processing: {plateName}")
 				match = re.match(r"^.+\d{4,}", plateName)
 				shotName = match.group(0) if match else plateName
