@@ -5,6 +5,21 @@ import shutil
 import sys
 
 
+def copy_with_fallback(src, dst):
+	try:
+		shutil.copy2(src, dst)
+	except PermissionError:
+		# Some macOS/Dropbox destinations reject file flag metadata updates.
+		shutil.copy(src, dst)
+
+
+def extract_plate_name(file_name):
+	match = re.match(r"^(.+)\.\d+\.\d+\.[^.]+$", file_name)
+	if match:
+		return match.group(1)
+	return os.path.splitext(file_name)[0]
+
+
 def copyPlates(annoPath, outboxPath):
 	# Check if the folder exists
 	if os.path.isdir(annoPath):
@@ -13,7 +28,7 @@ def copyPlates(annoPath, outboxPath):
 			file_path = os.path.join(annoPath, anno_name)
 			# Check if it's a file (not a folder)
 			if os.path.isfile(file_path):
-				plateName = os.path.basename(file_path[:-11])
+				plateName = extract_plate_name(os.path.basename(file_path))
 				print(f"Processing: {plateName}")
 				match = re.match(r"^.+\d{4,}", plateName)
 				shotName = match.group(0) if match else plateName
@@ -34,11 +49,19 @@ def copyPlates(annoPath, outboxPath):
 				outboxPlate = f'{outboxPath}/plates'
 				os.makedirs(outboxAnno, exist_ok=True)
 				os.makedirs(outboxPlate, exist_ok=True)
-				shutil.copy2(file_path, os.path.join(outboxAnno, os.path.basename(file_path)))
+				copy_with_fallback(file_path, os.path.join(outboxAnno, os.path.basename(file_path)))
+				if not os.path.exists(platePath):
+					print(f"Missing plate path: {platePath}")
+					continue
 				if not isSeq:
-					shutil.copy2(platePath, os.path.join(outboxPlate, os.path.basename(platePath)))
+					copy_with_fallback(platePath, os.path.join(outboxPlate, os.path.basename(platePath)))
 				else:
-					shutil.copytree(platePath, os.path.join(outboxPlate, os.path.basename(platePath)), dirs_exist_ok=True)
+					shutil.copytree(
+						platePath,
+						os.path.join(outboxPlate, os.path.basename(platePath)),
+						dirs_exist_ok=True,
+						copy_function=copy_with_fallback,
+					)
 
 
 	else:
